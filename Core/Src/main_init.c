@@ -40,12 +40,17 @@ void printPVTdata(UBX_NAV_PVT_data_t ubxDataStruct)
 
     long altitude = ubxDataStruct.hMSL; // Print the height above mean sea level
 
-    my_printf("Time: %d:%d:%d.%lu Lat: %ld Long: %ld (degrees * 10^-7) Height above MSL: %ld (mm)",
-            hms,min,sec, millisecs, latitude, longitude, altitude);
+//    my_printf("Time: %d:%d:%d.%lu Lat: %ld Long: %ld (degrees * 10^-7) Height above MSL: %ld (mm)",
+//            hms,min,sec, millisecs, latitude, longitude, altitude);
+
+    fx_printf("Time: %d:%d:%d.%lu Lat: %ld Long: %ld (degrees * 10^-7) Height above MSL: %ld (mm)",
+                hms,min,sec, millisecs, latitude, longitude, altitude);
 }
 
 void Main_Init(void)
 {
+    Main_Fatfs_Init();
+
     HAL_GPIO_WritePin(GPIOE, EXT_ANT_Pin, GPIO_PIN_RESET);
     HAL_Delay(100);
     /* Init us timer */

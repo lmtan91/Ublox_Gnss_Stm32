@@ -8,6 +8,8 @@
  ******************************************************************************/
 #include <serial.h>
 #include <stdarg.h>
+#include "fatfs.h"
+#include "main_fatfs.h"
 /*******************************************************************************
  * Internal Macros
  ******************************************************************************/
@@ -22,6 +24,9 @@
  * Variables
  ******************************************************************************/
 Serial_tst serial_st;
+
+FIL g_fil_st;      //File handle
+FRESULT g_fres_st;
 /* *****************************************************************************
  * Static function definition
  ******************************************************************************/
@@ -90,7 +95,42 @@ void vprint(const char *fmt, va_list argp)
     char string[200];
     if(0 < vsprintf(string,fmt,argp)) // build string
     {
-        printf("\r%s\n", string);
+                printf("\r%s\n", string);
+    }
+}
+
+void vprint1(const char *fmt, va_list argp)
+{
+    char string[200];
+    BYTE readBuf[30];
+
+    strncpy((char*)readBuf, "a new file is made!", 19);
+
+    g_fres_st = f_open(&g_fil_st, "write.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
+    if(g_fres_st == FR_OK)
+    {
+          my_printf("I was able to open 'write.txt' for writing\r\n");
+    }
+        else
+        {
+          my_printf("f_open error (%i)\r\n", g_fres_st);
+        }
+//    if(0 < vsprintf(string,fmt,argp)) // build string
+    {
+        UINT bytesWrote;
+        g_fres_st = f_write(&g_fil_st, readBuf, 19, &bytesWrote);
+        if(g_fres_st == FR_OK)
+        {
+            my_printf("Wrote %i bytes to 'write.txt'!\r\n", bytesWrote);
+        }
+        else
+        {
+            my_printf("f_write error (%i)\r\n");
+        }
+
+            //Be a tidy kiwi - don't forget to close your g_fil_ste!
+        f_close(&g_fil_st);
+//        printf("\r%s\n", string);
     }
 }
 
@@ -101,3 +141,13 @@ void my_printf(const char *fmt, ...)
     vprint(fmt, argp);
     va_end(argp);
 }
+
+void fx_printf(const char *fmt, ...)
+{
+    va_list argp;
+    va_start(argp, fmt);
+    vprint1(fmt, argp);
+    va_end(argp);
+}
+
+

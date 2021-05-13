@@ -30,6 +30,8 @@ void Serial_Init(struct Serial *serial_pst);
 
 void my_printf(const char *fmt, ...);
 
+void fx_printf(const char *fmt, ...);
+
 //extern Serial_tst serial_st;
 
 #ifdef __cplusplus
