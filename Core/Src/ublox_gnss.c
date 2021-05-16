@@ -35,6 +35,7 @@ Ubx_Packet_tst packetAuto_st = {0, 0, 0, 0, 0, NULL, 0, 0, UBLOX_PACKET_VALIDITY
 UBX_NAV_PVT_t *packetUBXNAVPVT_pst = NULL; // Pointer to struct. RAM will be allocated for this if/when necessary
 //UBX_ESF_STATUS_t *gnss_pst->packetUBXESFSTATUS_pst = NULL;
 moduleSWVersion_t *moduleSWVersion_pst = NULL;
+UBX_NAV_ODO_t *packetUBXNAVODO_pst = NULL;
 
 uint8_t g_incomming = 0x00;
 
@@ -1461,6 +1462,22 @@ bool Gnss_InitPacketUBXNAVPVT(struct Ublox_Gnss *gnss_pst)
     return (true);
 }
 
+bool Gnss_InitPacketUBXNAVODO(struct Ublox_Gnss *gnss_pst)
+{
+	packetUBXNAVODO_pst = (UBX_NAV_ODO_t *)malloc(sizeof(UBX_NAV_ODO_t)); //Allocate RAM for the main struct
+	if (packetUBXNAVODO_pst == NULL)
+	{
+		if ((_printDebug == true) || (_printLimitedDebug == true)) // This is important. Print this if doing limited debugging
+			my_printf("initPacketUBXNAVODO: PANIC! RAM allocation failed!");
+		return (false);
+	}
+	packetUBXNAVODO_pst->automaticFlags.flags.all = 0;
+	packetUBXNAVODO_pst->callbackPointer = NULL;
+	packetUBXNAVODO_pst->callbackData = NULL;
+	packetUBXNAVODO_pst->moduleQueried.moduleQueried.all = 0;
+	return (true);
+}
+
 bool Gnss_InitModuleSWVersion()
 {
     moduleSWVersion_pst = (moduleSWVersion_t *)malloc(sizeof(moduleSWVersion_pst)); //Allocate RAM for the main struct
@@ -1980,4 +1997,74 @@ bool Gnss_GetProtocolVersion(struct Ublox_Gnss *gnss_pst,uint16_t maxWait)
     }
 
     return (false); //We failed
+}
+
+bool Gnss_SetAutoNAVODOrate(struct Ublox_Gnss *gnss_pst,uint8_t rate, bool implicitUpdate_b, uint16_t maxWait_u16)
+{
+	if (packetUBXNAVODO_pst == NULL)
+	{
+		Gnss_InitPacketUBXNAVODO(gnss_pst); //Check that RAM has been allocated for the data
+	}
+	if (packetUBXNAVODO_pst == NULL) //Only attempt this if RAM allocation was successful
+	{
+		return false;
+	}
+
+	if (rate > 127)
+	{
+		rate = 127;
+	}
+
+	packetCfg_st.cls_u8 = UBX_CLASS_CFG;
+	packetCfg_st.id_u8 = UBX_CFG_MSG;
+	packetCfg_st.len_u16 = 3;
+	packetCfg_st.startingSpot_u16 = 0;
+	payloadCfg_pu8[0] = UBX_CLASS_NAV;
+	payloadCfg_pu8[1] = UBX_NAV_ODO;
+	payloadCfg_pu8[2] = rate; // rate relative to navigation freq.
+
+	bool ok_b = ((Gnss_SendCmd(gnss_pst, &packetCfg_st, maxWait_u16, false)) == UBLOX_STATUS_DATA_SENT); // We are only expecting an ACK
+	if (ok_b)
+	{
+		packetUBXNAVODO_pst->automaticFlags.flags.bits.automatic = (rate > 0);
+		packetUBXNAVODO_pst->automaticFlags.flags.bits.implicitUpdate = implicitUpdate_b;
+	}
+	packetUBXNAVODO_pst->moduleQueried.moduleQueried.bits.all = false;
+	return ok_b;
+}
+
+bool Gnss_SetAutoNAVODO(struct Ublox_Gnss *gnss_pst,bool enabled, uint16_t maxWait_u16)
+{
+	return Gnss_SetAutoNAVODOrate(gnss_pst, enabled ? 1 : 0, true, maxWait_u16);
+}
+
+bool Gnss_SetAutoNAVODOImplicit(struct Ublox_Gnss *gnss_pst,bool enabled, bool implicitUpdate_b, uint16_t maxWait_u16)
+{
+	return Gnss_SetAutoNAVODOrate(gnss_pst, enabled ? 1 : 0, implicitUpdate_b, maxWait_u16);
+}
+
+bool Gnss_SetAutoNAVODOcallback(struct Ublox_Gnss *gnss_pst, void (*callbackPointer)(UBX_NAV_ODO_data_t), uint16_t maxWait_u16)
+{
+	// Enable auto messages. Set implicitUpdate to false as we expect the user to call checkUblox manually.
+	bool result = Gnss_SetAutoNAVODOImplicit(gnss_pst, true, false, maxWait_u16);
+	if (!result)
+	{
+		return (result);
+	}
+
+	if (packetUBXNAVODO_pst->callbackData == NULL)
+	{
+		packetUBXNAVODO_pst->callbackData = (UBX_NAV_ODO_data_t*)malloc(sizeof(UBX_NAV_ODO_data_t));
+	}
+
+	if (packetUBXNAVODO_pst->callbackData == NULL)
+	{
+		if ((_printDebug == true) || (_printLimitedDebug == true))
+			my_printf("setAutoNAVODOcallback: PANIC! RAM allocation failed!");
+		return (false);
+	}
+
+	packetUBXNAVODO_pst->callbackPointer = callbackPointer;
+
+	return (true);
 }

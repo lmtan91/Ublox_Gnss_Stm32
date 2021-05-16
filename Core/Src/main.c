@@ -127,7 +127,9 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
+
+  uint32_t startTime = timer_getCurrentTimeStampMs();
+  while (timer_getTimeElapsed(startTime) < 50000)
   {
     /* USER CODE END WHILE */
 //      long latitude = Gnss_GetLatitude(&ubx_st, 1000);
@@ -138,6 +140,10 @@ int main(void)
       DWT_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
+  HAL_GPIO_WritePin(LED_G1_GPIO_Port, LED_G1_Pin, RESET);
+  Fatfs_Close();
+  my_printf("exit");
+  DWT_Delay(1000);
   /* USER CODE END 3 */
 }
 

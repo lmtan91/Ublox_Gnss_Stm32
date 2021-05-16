@@ -250,6 +250,11 @@ bool Gnss_SetAutoPVTrate(struct Ublox_Gnss *gnss_pst, uint8_t rate_u8, bool impl
 bool Gnss_SetAutoPVT(struct Ublox_Gnss *gnss_pst, bool enabled_b, uint16_t maxWait_u16);
 bool Gnss_SetAutoPVTImplicit(struct Ublox_Gnss *gnss_pst, bool enabled_b, bool implicitUpdate_b, uint16_t maxWait_u16);
 
+bool Gnss_SetAutoNAVODOrate(struct Ublox_Gnss *gnss_pst,uint8_t rate, bool implicitUpdate_b, uint16_t maxWait_u16); //Set the rate for automatic ODO reports
+bool Gnss_SetAutoNAVODO(struct Ublox_Gnss *gnss_pst,bool enabled, uint16_t maxWait_u16);  //Enable/disable automatic ODO reports at the navigation frequency
+bool Gnss_SetAutoNAVODOImplicit(struct Ublox_Gnss *gnss_pst,bool enabled, bool implicitUpdate_b, uint16_t maxWait_u16);
+bool Gnss_SetAutoNAVODOcallback(struct Ublox_Gnss *gnss_pst, void (*callbackPointer)(UBX_NAV_ODO_data_t), uint16_t maxWait_u16); //Enable automatic ODO reports at the navigation frequency. Data is accessed from the callback.
+
 bool Gnss_GetGnssFixOk(struct Ublox_Gnss *gnss_pst,uint16_t maxWait_u16); //Get whether we have a valid fix (i.e within DOP & accuracy masks)
 uint8_t Gnss_GetFixType(struct Ublox_Gnss *gnss_pst,uint16_t maxWait_u16); //Returns the type of fix: 0=no, 3=3D, 4=GNSS+Deadreckoning
 uint8_t Gnss_GetSIV(struct Ublox_Gnss *gnss_pst, uint16_t maxWait_u16); //Returns number of sats used in fix
@@ -265,6 +270,7 @@ uint32_t Gnss_GetSpeedAccEst(struct Ublox_Gnss *gnss_pst,uint16_t maxWait_u16);
 bool Gnss_InitPacketUBXNAVPVT(struct Ublox_Gnss *gnss_pst);
 bool Gnss_InitPacketUBXESFSTATUS(struct Ublox_Gnss *gnss_pst); // Allocate RAM for packetUBXESFSTATUS and initialize it
 bool Gnss_InitModuleSWVersion(); // Allocate RAM for moduleSWVersion and initialize it
+bool Gnss_InitPacketUBXNAVODO(struct Ublox_Gnss *gnss_pst);
 
 bool Gnss_GetEsfInfo(struct Ublox_Gnss *gnss_pst, uint16_t maxWait_u16); // ESF STATUS Helper
 bool Gnss_GetESFSTATUS(struct Ublox_Gnss *gnss_pst, uint16_t maxWait_u16); // ESF STATUS

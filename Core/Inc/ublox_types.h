@@ -306,6 +306,33 @@ typedef struct
   uint32_t distanceStd; // Ground distance accuracy (1-sigma): m
 } UBX_NAV_ODO_data_t;
 
+typedef struct
+{
+  union
+  {
+    uint32_t all;
+    struct
+    {
+      uint32_t all : 1;
+
+      uint32_t version : 1;
+      uint32_t iTOW : 1;
+      uint32_t distance : 1;
+      uint32_t totalDistance : 1;
+      uint32_t distanceStd : 1;
+    } bits;
+  } moduleQueried;
+} UBX_NAV_ODO_moduleQueried_t;
+
+typedef struct
+{
+    ubxAutomaticFlags_tst automaticFlags;
+  UBX_NAV_ODO_data_t data;
+  UBX_NAV_ODO_moduleQueried_t moduleQueried;
+  void (*callbackPointer)(UBX_NAV_ODO_data_t);
+  UBX_NAV_ODO_data_t  *callbackData;
+} UBX_NAV_ODO_t;
+
 // UBX-NAV-VELECEF (0x01 0x11): Velocity solution in ECEF
 #define UBX_NAV_VELECEF_LEN 20
 typedef struct

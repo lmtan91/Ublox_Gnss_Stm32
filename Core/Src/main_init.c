@@ -24,6 +24,15 @@ static void MX_UART4_Init(uint32_t BaudRate_u32)
   }
 }
 
+void printODOdata(UBX_NAV_ODO_data_t ubxDataStruct)
+{
+    unsigned long iTOW = ubxDataStruct.iTOW; // iTOW is in milliseconds
+    unsigned long distance = ubxDataStruct.distance; // Print the distance
+    unsigned long totalDistance = ubxDataStruct.totalDistance; // Print the total distance
+
+    my_printf("TOW: %lu (ms) Distance: %lu (m) Total Distance: %lu (m)",
+    		iTOW, distance, totalDistance);
+}
 
 void printPVTdata(UBX_NAV_PVT_data_t ubxDataStruct)
 {
@@ -39,19 +48,25 @@ void printPVTdata(UBX_NAV_PVT_data_t ubxDataStruct)
     long longitude = ubxDataStruct.lon; // Print the longitude
 
     long altitude = ubxDataStruct.hMSL; // Print the height above mean sea level
+    uint8_t numSv_u8 = ubxDataStruct.numSV;
 
-//    my_printf("Time: %d:%d:%d.%lu Lat: %ld Long: %ld (degrees * 10^-7) Height above MSL: %ld (mm)",
-//            hms,min,sec, millisecs, latitude, longitude, altitude);
+    uint8_t fixOk_u8 = ubxDataStruct.flags.bits.gnssFixOK;
+    uint8_t fixType_u8 = ubxDataStruct.fixType;
 
-    fx_printf("Time: %d:%d:%d.%lu Lat: %ld Long: %ld (degrees * 10^-7) Height above MSL: %ld (mm)",
-                hms,min,sec, millisecs, latitude, longitude, altitude);
+    long height = ubxDataStruct.height;
+
+    my_printf("Time: %d:%d:%d.%lu Lat: %ld Long: %ld (degrees * 10^-7) hMSL: %ld (mm) NumSV: %d Fix: %d FixType: %d",
+            hms,min,sec, millisecs, latitude, longitude, altitude, numSv_u8, fixOk_u8, fixType_u8);
+
+    Fatfs_Printf("Time: %d:%d:%d.%lu Lat: %ld Long: %ld Height: %ld hMSL: %ld (mm) NumSV: %d Fix: %d FixType: %d",
+                hms,min,sec, millisecs, latitude, longitude, height, altitude, numSv_u8, fixOk_u8, fixType_u8);
 }
 
 void Main_Init(void)
 {
-    Main_Fatfs_Init();
+    Fatfs_Init();
 
-    HAL_GPIO_WritePin(GPIOE, EXT_ANT_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOE, EXT_ANT_Pin, GPIO_PIN_SET);
     HAL_Delay(100);
     /* Init us timer */
     DWT_Init();
@@ -112,6 +127,7 @@ void Main_Init(void)
             }
 
             Gnss_SetAutoPVTcallback(&ubx_st, &printPVTdata, 1000);
+            Gnss_SetAutoNAVODOcallback(&ubx_st, &printODOdata, 1000);
         }
     }
 }
