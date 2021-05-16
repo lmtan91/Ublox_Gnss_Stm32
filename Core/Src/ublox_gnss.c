@@ -33,9 +33,12 @@ Ubx_Packet_tst packetAuto_st = {0, 0, 0, 0, 0, NULL, 0, 0, UBLOX_PACKET_VALIDITY
 // Pointers to storage for the "automatic" messages
 // RAM is allocated for these if/when required.
 UBX_NAV_PVT_t *packetUBXNAVPVT_pst = NULL; // Pointer to struct. RAM will be allocated for this if/when necessary
-//UBX_ESF_STATUS_t *gnss_pst->packetUBXESFSTATUS_pst = NULL;
 moduleSWVersion_t *moduleSWVersion_pst = NULL;
 UBX_NAV_ODO_t *packetUBXNAVODO_pst = NULL;
+UBX_ESF_ALG_t *packetUBXESFALG_pst = NULL;
+UBX_ESF_INS_t *packetUBXESFINS = NULL;
+UBX_ESF_MEAS_t *packetUBXESFMEAS = NULL;
+UBX_ESF_STATUS_t *packetUBXESFSTATUS = NULL;
 
 uint8_t g_incomming = 0x00;
 
@@ -63,7 +66,6 @@ bool Gnss_Init(Ublox_Gnss_tst *gnss_pst, Serial_tst *serial_pst)
         gnss_pst->commTypes_en = COMM_TYPE_SERIAL;
         gnss_pst->serial_pst = serial_pst;
         gnss_pst->checkCallbacksReentrant_b = false;
-        gnss_pst->packetUBXESFSTATUS_pst = NULL;
 
         if(gnss_pst->packetCfgPayloadSize == 0)
         {
@@ -1478,6 +1480,73 @@ bool Gnss_InitPacketUBXNAVODO(struct Ublox_Gnss *gnss_pst)
 	return (true);
 }
 
+bool Gnss_InitPacketUBXESFALG(struct Ublox_Gnss *gnss_pst)
+{
+	packetUBXESFALG_pst = (UBX_ESF_ALG_t *)malloc(sizeof(UBX_ESF_ALG_t));
+	if (packetUBXESFALG_pst == NULL)
+	{
+		if ((_printDebug == true) || (_printLimitedDebug == true))
+		{
+			my_printf("initPacketUBXESFALG: PANIC! RAM allocation failed!");
+		}
+		return (false);
+	}
+	packetUBXESFALG_pst->automaticFlags.flags.all = 0;
+	packetUBXESFALG_pst->callbackPointer = NULL;
+	packetUBXESFALG_pst->callbackData = NULL;
+	packetUBXESFALG_pst->moduleQueried.moduleQueried.all = 0;
+	return (true);
+}
+
+bool Gnss_InitPacketUBXESFINS(struct Ublox_Gnss *gnss_pst)
+{
+	packetUBXESFINS = (UBX_ESF_INS_t *)malloc(sizeof(UBX_ESF_INS_t));
+	if (packetUBXESFINS == NULL)
+	{
+		if ((_printDebug == true) || (_printLimitedDebug == true))
+			my_printf("initPacketUBXESFINS: PANIC! RAM allocation failed!");
+		return (false);
+	}
+	packetUBXESFINS->automaticFlags.flags.all = 0;
+	packetUBXESFINS->callbackPointer = NULL;
+	packetUBXESFINS->callbackData = NULL;
+	packetUBXESFINS->moduleQueried.moduleQueried.all = 0;
+	return (true);
+}
+
+bool Gnss_InitPacketUBXESFMEAS(struct Ublox_Gnss *gnss_pst)
+{
+	packetUBXESFMEAS = (UBX_ESF_MEAS_t *)malloc(sizeof(UBX_ESF_MEAS_t));
+	if (packetUBXESFMEAS == NULL)
+	{
+		if ((_printDebug == true) || (_printLimitedDebug == true))
+			my_printf("initPacketUBXESFMEAS: PANIC! RAM allocation failed!");
+		return (false);
+	}
+	packetUBXESFMEAS->automaticFlags.flags.all = 0;
+	packetUBXESFMEAS->callbackPointer = NULL;
+	packetUBXESFMEAS->callbackData = NULL;
+	packetUBXESFMEAS->moduleQueried.moduleQueried.all = 0;
+	return (true);
+}
+
+bool Gnss_InitPacketUBXESFSTATUS(struct Ublox_Gnss *gnss_pst)
+{
+	packetUBXESFSTATUS = (UBX_ESF_STATUS_t*)malloc(sizeof(UBX_ESF_STATUS_t));
+
+	if (packetUBXESFSTATUS == NULL)
+	{
+		if ((_printDebug == true) || (_printLimitedDebug == true)) // This is important. Print this if doing limited debugging
+			my_printf("initPacketUBXESFSTATUS: PANIC! RAM allocation failed!");
+		return (false);
+	}
+	packetUBXESFSTATUS->automaticFlags.flags.all = 0;
+	packetUBXESFSTATUS->callbackPointer = NULL;
+	packetUBXESFSTATUS->callbackData = NULL;
+	packetUBXESFSTATUS->moduleQueried.moduleQueried.all = 0;
+	return (true);
+}
+
 bool Gnss_InitModuleSWVersion()
 {
     moduleSWVersion_pst = (moduleSWVersion_t *)malloc(sizeof(moduleSWVersion_pst)); //Allocate RAM for the main struct
@@ -1490,22 +1559,6 @@ bool Gnss_InitModuleSWVersion()
     moduleSWVersion_pst->versionHigh = 0;
     moduleSWVersion_pst->versionLow = 0;
     moduleSWVersion_pst->moduleQueried = false;
-    return (true);
-}
-
-bool Gnss_InitPacketUBXESFSTATUS(struct Ublox_Gnss *gnss_pst)
-{
-    gnss_pst->packetUBXESFSTATUS_pst = (UBX_ESF_STATUS_t *)malloc(sizeof(UBX_ESF_STATUS_t)); //Allocate RAM for the main struct
-
-    if (gnss_pst->packetUBXESFSTATUS_pst == NULL)
-    {
-        my_printf("initPacketUBXESFSTATUS: PANIC! RAM allocation failed!");
-        return (false);
-    }
-    gnss_pst->packetUBXESFSTATUS_pst->automaticFlags.flags.all = 0;
-    gnss_pst->packetUBXESFSTATUS_pst->callbackPointer = NULL;
-    gnss_pst->packetUBXESFSTATUS_pst->callbackData = NULL;
-    gnss_pst->packetUBXESFSTATUS_pst->moduleQueried.moduleQueried.all = 0;
     return (true);
 }
 
@@ -1879,23 +1932,23 @@ bool Gnss_GetEsfInfo(struct Ublox_Gnss *gnss_pst, uint16_t maxWait_u16)
 
 bool Gnss_GetESFSTATUS(struct Ublox_Gnss *gnss_pst, uint16_t maxWait_u16)
 {
-    if (gnss_pst->packetUBXESFSTATUS_pst == NULL)
+    if (packetUBXESFSTATUS == NULL)
     {
         Gnss_InitPacketUBXESFSTATUS(gnss_pst); //Check that RAM has been allocated for the ESF status data
     }
-    if (gnss_pst->packetUBXESFSTATUS_pst == NULL) //Only attempt this if RAM allocation was successful
+    if (packetUBXESFSTATUS == NULL) //Only attempt this if RAM allocation was successful
     {
       return false;
     }
 
-    if (gnss_pst->packetUBXESFSTATUS_pst->automaticFlags.flags.bits.automatic
-            && gnss_pst->packetUBXESFSTATUS_pst->automaticFlags.flags.bits.implicitUpdate)
+    if (packetUBXESFSTATUS->automaticFlags.flags.bits.automatic
+            && packetUBXESFSTATUS->automaticFlags.flags.bits.implicitUpdate)
     {
       //The GPS is automatically reporting, we just check whether we got unread data
       Gnss_CheckUbloxInternal(gnss_pst, &packetCfg_st, UBX_CLASS_ESF, UBX_ESF_STATUS);
-      return gnss_pst->packetUBXESFSTATUS_pst->moduleQueried.moduleQueried.bits.all;
+      return packetUBXESFSTATUS->moduleQueried.moduleQueried.bits.all;
     }
-    else if (gnss_pst->packetUBXESFSTATUS_pst->automaticFlags.flags.bits.automatic && !gnss_pst->packetUBXESFSTATUS_pst->automaticFlags.flags.bits.implicitUpdate)
+    else if (packetUBXESFSTATUS->automaticFlags.flags.bits.automatic && !packetUBXESFSTATUS->automaticFlags.flags.bits.implicitUpdate)
     {
       return (false);
     }
@@ -2066,5 +2119,281 @@ bool Gnss_SetAutoNAVODOcallback(struct Ublox_Gnss *gnss_pst, void (*callbackPoin
 
 	packetUBXNAVODO_pst->callbackPointer = callbackPointer;
 
+	return (true);
+}
+
+bool Gnss_SetHNRNavigationRate(struct Ublox_Gnss *gnss_pst, uint8_t rate, uint16_t maxWait)
+{
+	packetCfg_st.cls_u8 = UBX_CLASS_CFG;
+	packetCfg_st.id_u8 = UBX_CFG_HNR;
+	packetCfg_st.len_u16 = 0;
+	packetCfg_st.startingSpot_u16 = 0;
+
+	//Ask module for the current HNR settings. Loads into payloadCfg.
+	if (Gnss_SendCmd(gnss_pst, &packetCfg_st, maxWait, false) != UBLOX_STATUS_DATA_RECEIVED)
+	{
+		return (false);
+	}
+
+	//Load the new navigation rate into payloadCfg
+	payloadCfg_pu8[0] = rate;
+
+	//Update the navigation rate
+	ublox_status_ten result = Gnss_SendCmd(gnss_pst,&packetCfg_st, maxWait, false); // We are only expecting an ACK
+
+	//Adjust the I2C polling timeout based on update rate
+	if (result == UBLOX_STATUS_DATA_SENT)
+	{
+		//TODO: comment it
+//		i2cPollingWait = 1000 / (((int)rate) * 4);
+	}
+
+	return (result == UBLOX_STATUS_DATA_SENT);
+}
+
+bool Gnss_SetAutoESFALG(struct Ublox_Gnss *gnss_pst,bool enabled, uint16_t maxWait)
+{
+	return Gnss_SetAutoESFALGrate(gnss_pst,enabled ? 1 : 0, true, maxWait);
+}
+
+bool Gnss_SetAutoESFALGImplicit(struct Ublox_Gnss *gnss_pst,bool enabled, bool implicitUpdate, uint16_t maxWait)
+{
+	return Gnss_SetAutoESFALGrate(gnss_pst,enabled ? 1 : 0, implicitUpdate, maxWait);
+}
+
+bool Gnss_SetAutoESFALGcallback(struct Ublox_Gnss *gnss_pst,void (*callbackPointer)(UBX_ESF_ALG_data_t), uint16_t maxWait)
+{
+	// Enable auto messages. Set implicitUpdate to false as we expect the user to call checkUblox manually.
+	bool result = Gnss_SetAutoESFALGImplicit(gnss_pst,true, false, maxWait);
+	if (!result)
+	{
+		return (result);
+	}
+
+	if (packetUBXESFALG_pst->callbackData == NULL) //Check if RAM has been allocated for the callback copy
+	{
+		packetUBXESFALG_pst->callbackData = (UBX_ESF_ALG_data_t *)malloc(sizeof(UBX_ESF_ALG_data_t));
+	}
+
+	if (packetUBXESFALG_pst->callbackData == NULL)
+	{
+		if ((_printDebug == true) || (_printLimitedDebug == true))
+		{
+			my_printf("setAutoESFALGcallback: PANIC! RAM allocation failed!");
+		}
+		return (false);
+	}
+
+	packetUBXESFALG_pst->callbackPointer = callbackPointer;
+	return (true);
+}
+
+bool Gnss_SetAutoESFALGrate(struct Ublox_Gnss *gnss_pst,uint8_t rate, bool implicitUpdate, uint16_t maxWait)
+{
+	if (packetUBXESFALG_pst == NULL)
+	{
+		Gnss_InitPacketUBXESFALG(gnss_pst);
+	}
+	if (packetUBXESFALG_pst == NULL)
+	{
+		return false;
+	}
+
+	if (rate > 127)
+	{
+		rate = 127;
+	}
+
+	packetCfg_st.cls_u8 = UBX_CLASS_CFG;
+	packetCfg_st.id_u8 = UBX_CFG_MSG;
+	packetCfg_st.len_u16 = 3;
+	packetCfg_st.startingSpot_u16 = 0;
+	payloadCfg_pu8[0] = UBX_CLASS_ESF;
+	payloadCfg_pu8[1] = UBX_ESF_ALG;
+	payloadCfg_pu8[2] = rate; // rate relative to navigation freq.
+
+	bool ok = ((Gnss_SendCmd(gnss_pst, &packetCfg_st, maxWait, false)) == UBLOX_STATUS_DATA_SENT); // We are only expecting an ACK
+	if (ok)
+	{
+		packetUBXESFALG_pst->automaticFlags.flags.bits.automatic = (rate > 0);
+		packetUBXESFALG_pst->automaticFlags.flags.bits.implicitUpdate = implicitUpdate;
+	}
+	packetUBXESFALG_pst->moduleQueried.moduleQueried.bits.all = false; // Mark data as stale
+	return ok;
+}
+
+bool Gnss_SetAutoESFINS(struct Ublox_Gnss *gnss_pst,bool enabled, uint16_t maxWait)
+{
+	return Gnss_SetAutoESFINSrate(gnss_pst,enabled ? 1 : 0, true, maxWait);
+}
+
+bool Gnss_SetAutoESFINSImplicit(struct Ublox_Gnss *gnss_pst,bool enabled, bool implicitUpdate, uint16_t maxWait)
+{
+	return Gnss_SetAutoESFINSrate(gnss_pst,enabled ? 1 : 0, implicitUpdate, maxWait);
+}
+
+bool Gnss_SetAutoESFINSrate(struct Ublox_Gnss *gnss_pst,uint8_t rate, bool implicitUpdate, uint16_t maxWait)
+{
+	if (packetUBXESFINS == NULL)
+	{
+		initPacketUBXESFINS();
+	}
+	if (packetUBXESFINS == NULL)
+	{
+		return false;
+	}
+
+	if (rate > 127) rate = 127;
+
+	packetCfg_st.cls_u8 = UBX_CLASS_CFG;
+	packetCfg_st.id_u8 = UBX_CFG_MSG;
+	packetCfg_st.len_u16 = 3;
+	packetCfg_st.startingSpot_u16 = 0;
+	payloadCfg_pu8[0] = UBX_CLASS_ESF;
+	payloadCfg_pu8[1] = UBX_ESF_INS;
+	payloadCfg_pu8[2] = rate; // rate relative to navigation freq.
+
+	bool ok = ((Gnss_SendCmd(gnss_pst,&packetCfg_st, maxWait,false)) == UBLOX_STATUS_DATA_SENT); // We are only expecting an ACK
+	if (ok)
+	{
+		packetUBXESFINS->automaticFlags.flags.bits.automatic = (rate > 0);
+		packetUBXESFINS->automaticFlags.flags.bits.implicitUpdate = implicitUpdate;
+	}
+	packetUBXESFINS->moduleQueried.moduleQueried.bits.all = false; // Mark data as stale
+	return ok;
+}
+
+bool Gnss_SetAutoESFINScallback(struct Ublox_Gnss *gnss_pst,void (*callbackPointer)(UBX_ESF_INS_data_t), uint16_t maxWait)
+{
+	// Enable auto messages. Set implicitUpdate to false as we expect the user to call checkUblox manually.
+	bool result = setAutoESFINS(true, false, maxWait);
+	if (!result)
+		return (result); // Bail if setAuto failed
+
+	if (packetUBXESFINS->callbackData == NULL) //Check if RAM has been allocated for the callback copy
+	{
+		packetUBXESFINS->callbackData = (UBX_ESF_INS_data_t*)malloc(sizeof(UBX_ESF_INS_data_t)); //Allocate RAM for the main struct
+	}
+
+	if (packetUBXESFINS->callbackData == NULL)
+	{
+		if ((_printDebug == true) || (_printLimitedDebug == true)) // This is important. Print this if doing limited debugging
+			my_printf("setAutoESFINScallback: PANIC! RAM allocation failed!");
+		return (false);
+	}
+
+	packetUBXESFINS->callbackPointer = callbackPointer;
+	return (true);
+}
+
+bool Gnss_SetAutoESFMEAS(struct Ublox_Gnss *gnss_pst,bool enabled, uint16_t maxWait)
+{
+	return Gnss_SetAutoESFMEASrate(gnss_pst,enabled ? 1 : 0, true, maxWait);
+}
+bool Gnss_SetAutoESFMEASImplicit(struct Ublox_Gnss *gnss_pst,bool enabled, bool implicitUpdate, uint16_t maxWait)
+{
+	return Gnss_SetAutoESFMEASrate(gnss_pst, enabled ? 1 : 0, implicitUpdate, maxWait);
+}
+bool Gnss_SetAutoESFMEASrate(struct Ublox_Gnss *gnss_pst,uint8_t rate, bool implicitUpdate, uint16_t maxWait)
+{
+	if (packetUBXESFMEAS == NULL) Gnss_InitPacketUBXESFMEAS(gnss_pst); //Check that RAM has been allocated for the data
+	if (packetUBXESFMEAS == NULL) //Only attempt this if RAM allocation was successful
+		return false;
+
+	if (rate > 127) rate = 127;
+
+	packetCfg_st.cls_u8 = UBX_CLASS_CFG;
+	packetCfg_st.id_u8 = UBX_CFG_MSG;
+	packetCfg_st.len_u16 = 3;
+	packetCfg_st.startingSpot_u16 = 0;
+	payloadCfg_pu8[0] = UBX_CLASS_ESF;
+	payloadCfg_pu8[1] = UBX_ESF_MEAS;
+	payloadCfg_pu8[2] = rate; // rate relative to navigation freq.
+
+	bool ok = ((Gnss_SendCmd(gnss_pst, &packetCfg_st, maxWait, false)) == UBLOX_STATUS_DATA_SENT); // We are only expecting an ACK
+	if (ok)
+	{
+		packetUBXESFMEAS->automaticFlags.flags.bits.automatic = (rate > 0);
+		packetUBXESFMEAS->automaticFlags.flags.bits.implicitUpdate = implicitUpdate;
+	}
+	packetUBXESFMEAS->moduleQueried.moduleQueried.bits.all = false; // Mark data as stale
+	return ok;
+}
+bool Gnss_SetAutoESFMEAScallback(struct Ublox_Gnss *gnss_pst,void (*callbackPointer)(UBX_ESF_MEAS_data_t), uint16_t maxWait)
+{
+	// Enable auto messages. Set implicitUpdate to false as we expect the user to call checkUblox manually.
+	bool result = setAutoESFMEAS(true, false, maxWait);
+	if (!result)
+	return (result); // Bail if setAuto failed
+
+	if (packetUBXESFMEAS->callbackData == NULL) //Check if RAM has been allocated for the callback copy
+	{
+	packetUBXESFMEAS->callbackData = (UBX_ESF_MEAS_data_t*)malloc(sizeof(UBX_ESF_MEAS_data_t)); //Allocate RAM for the main struct
+	}
+
+	if (packetUBXESFMEAS->callbackData == NULL)
+	{
+	if ((_printDebug == true) || (_printLimitedDebug == true)) // This is important. Print this if doing limited debugging
+	  my_printf("setAutoESFMEAScallback: PANIC! RAM allocation failed!");
+	  return (false);
+	}
+
+	packetUBXESFMEAS->callbackPointer = callbackPointer;
+	return (true);
+}
+
+bool Gnss_SetAutoESFSTATUS(struct Ublox_Gnss *gnss_pst,bool enabled, uint16_t maxWait )
+{
+	return Gnss_SetAutoESFSTATUSrate(gnss_pst,enabled ? 1 : 0, true, maxWait);
+}
+bool Gnss_SetAutoESFSTATUSImplicit(struct Ublox_Gnss *gnss_pst,bool enabled, bool implicitUpdate, uint16_t maxWait )
+{
+	return Gnss_SetAutoESFSTATUSrate(gnss_pst,enabled ? 1 : 0, implicitUpdate, maxWait);
+}
+bool Gnss_SetAutoESFSTATUSrate(struct Ublox_Gnss *gnss_pst,uint8_t rate, bool implicitUpdate , uint16_t maxWait )
+{
+	if (packetUBXESFSTATUS == NULL) Gnss_InitPacketUBXESFSTATUS(gnss_pst); //Check that RAM has been allocated for the data
+	if (packetUBXESFSTATUS == NULL) //Only attempt this if RAM allocation was successful
+		return false;
+
+	if (rate > 127) rate = 127;
+
+	packetCfg_st.cls_u8 = UBX_CLASS_CFG;
+	packetCfg_st.id_u8 = UBX_CFG_MSG;
+	packetCfg_st.len_u16 = 3;
+	packetCfg_st.startingSpot_u16 = 0;
+	payloadCfg_pu8[0] = UBX_CLASS_ESF;
+	payloadCfg_pu8[1] = UBX_ESF_STATUS;
+	payloadCfg_pu8[2] = rate; // rate relative to navigation freq.
+
+	bool ok = ((Gnss_SendCmd(gnss_pst,&packetCfg_st, maxWait, false)) == UBLOX_STATUS_DATA_SENT); // We are only expecting an ACK
+	if (ok)
+	{
+		packetUBXESFSTATUS->automaticFlags.flags.bits.automatic = (rate > 0);
+		packetUBXESFSTATUS->automaticFlags.flags.bits.implicitUpdate = implicitUpdate;
+	}
+	packetUBXESFSTATUS->moduleQueried.moduleQueried.bits.all = false; // Mark data as stale
+	return ok;
+}
+bool Gnss_SetAutoESFSTATUScallback(struct Ublox_Gnss *gnss_pst,void (*callbackPointer)(UBX_ESF_STATUS_data_t), uint16_t maxWait )
+{
+	// Enable auto messages. Set implicitUpdate to false as we expect the user to call checkUblox manually.
+	bool result = Gnss_SetAutoESFSTATUSImplicit(gnss_pst,true, false, maxWait);
+	if (!result)
+		return (result); // Bail if setAuto failed
+
+	if (packetUBXESFSTATUS->callbackData == NULL) //Check if RAM has been allocated for the callback copy
+	{
+		packetUBXESFSTATUS->callbackData = (UBX_ESF_STATUS_data_t*)malloc(sizeof( UBX_ESF_STATUS_data_t));
+	}
+
+	if (packetUBXESFSTATUS->callbackData == NULL)
+	{
+		if ((_printDebug == true) || (_printLimitedDebug == true)) // This is important. Print this if doing limited debugging
+			my_printf("setAutoESFSTATUScallback: PANIC! RAM allocation failed!");
+		return (false);
+	}
+
+	packetUBXESFSTATUS->callbackPointer = callbackPointer;
 	return (true);
 }

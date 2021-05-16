@@ -620,6 +620,214 @@ typedef struct
   UBX_ESF_STATUS_data_t  *callbackData;
 } UBX_ESF_STATUS_t;
 
+// UBX-ESF-ALG (0x10 0x14): IMU alignment information
+#define UBX_ESF_ALG_LEN 16
+
+typedef struct
+{
+  uint32_t iTOW; // GPS time of week of the HNR epoch: ms
+  uint8_t version; // Message version (0x01 for this version)
+  union
+  {
+    uint8_t all;
+    struct
+    {
+      uint8_t autoMntAlgOn : 1; // Automatic IMU-mount alignment on/off bit
+      uint8_t status : 3; // Status of the IMU-mount alignment
+                          //   0: user-defined/fixed angles are used
+                          //   1: IMU-mount roll/pitch angles alignment is ongoing
+                          //   2: IMU-mount roll/pitch/yaw angles alignment is ongoing
+                          //   3: coarse IMU-mount alignment are used
+                          //   4: fine IMU-mount alignment are used
+    } bits;
+  } flags;
+  union
+  {
+    uint8_t all;
+    struct
+    {
+      uint8_t tiltAlgError : 1; // IMU-mount tilt (roll and/or pitch) alignment error (0: no error, 1: error)
+      uint8_t yawAlgError : 1; // IMU-mount yaw alignment error (0: no error, 1: error)
+      uint8_t angleError : 1; // IMU-mount misalignment Euler angle singularity error (0: no error, 1: error)
+    } bits;
+  } error;
+  uint8_t reserved1;
+  uint32_t yaw; // IMU-mount yaw angle [0, 360]: Degrees * 1e-2
+  int16_t pitch; // IMU-mount pitch angle [-90, 90]: Degrees * 1e-2
+  int16_t roll; // IMU-mount roll angle [-180, 180]: Degrees * 1e-2
+} UBX_ESF_ALG_data_t;
+
+typedef struct
+{
+  union
+  {
+    uint32_t all;
+    struct
+    {
+      uint32_t all : 1;
+
+      uint32_t iTOW : 1;
+      uint32_t version : 1;
+
+      uint32_t autoMntAlgOn : 1;
+      uint32_t status : 1;
+
+      uint32_t tiltAlgError : 1;
+      uint32_t yawAlgError : 1;
+      uint32_t angleError : 1;
+
+      uint32_t yaw : 1;
+      uint32_t pitch : 1;
+      uint32_t roll : 1;
+    } bits;
+  } moduleQueried;
+} UBX_ESF_ALG_moduleQueried_t;
+
+typedef struct
+{
+	ubxAutomaticFlags_tst automaticFlags;
+  UBX_ESF_ALG_data_t data;
+  UBX_ESF_ALG_moduleQueried_t moduleQueried;
+  void (*callbackPointer)(UBX_ESF_ALG_data_t);
+  UBX_ESF_ALG_data_t  *callbackData;
+} UBX_ESF_ALG_t;
+
+// UBX-ESF-INS (0x10 0x15): Vehicle dynamics information
+#define UBX_ESF_INS_LEN 36
+
+typedef struct
+{
+  union
+  {
+    uint32_t all;
+    struct
+    {
+      uint32_t version : 8; // Message version (0x01 for this version)
+      uint32_t xAngRateValid : 1; // Compensated x-axis angular rate data validity flag (0: not valid, 1: valid)
+      uint32_t yAngRateValid : 1; // Compensated y-axis angular rate data validity flag (0: not valid, 1: valid)
+      uint32_t zAngRateValid : 1; // Compensated z-axis angular rate data validity flag (0: not valid, 1: valid)
+      uint32_t xAccelValid : 1; // Compensated x-axis acceleration data validity flag (0: not valid, 1: valid)
+      uint32_t yAccelValid : 1; // Compensated y-axis acceleration data validity flag (0: not valid, 1: valid)
+      uint32_t zAccelValid : 1; // Compensated z-axis acceleration data validity flag (0: not valid, 1: valid)
+    } bits;
+  } bitfield0;
+  uint8_t reserved1[4];
+  uint32_t iTOW; // GPS time of week of the HNR epoch: ms
+  int32_t xAngRate; // Compensated x-axis angular rate: Degrees/s * 1e-3
+  int32_t yAngRate; // Compensated y-axis angular rate: Degrees/s * 1e-3
+  int32_t zAngRate; // Compensated z-axis angular rate: Degrees/s * 1e-3
+  int32_t xAccel; // Compensated x-axis acceleration (gravity-free): m/s^2 * 1e-2
+  int32_t yAccel; // Compensated y-axis acceleration (gravity-free): m/s^2 * 1e-2
+  int32_t zAccel; // Compensated z-axis acceleration (gravity-free): m/s^2 * 1e-2
+} UBX_ESF_INS_data_t;
+
+typedef struct
+{
+  union
+  {
+    uint32_t all;
+    struct
+    {
+      uint32_t all : 1;
+
+      uint32_t version : 1;
+      uint32_t xAngRateValid : 1;
+      uint32_t yAngRateValid : 1;
+      uint32_t zAngRateValid : 1;
+      uint32_t xAccelValid : 1;
+      uint32_t yAccelValid : 1;
+      uint32_t zAccelValid : 1;
+
+      uint32_t iTOW : 1;
+      uint32_t xAngRate : 1;
+      uint32_t yAngRate : 1;
+      uint32_t zAngRate : 1;
+      uint32_t xAccel : 1;
+      uint32_t yAccel : 1;
+      uint32_t zAccel : 1;
+    } bits;
+  } moduleQueried;
+} UBX_ESF_INS_moduleQueried_t;
+
+typedef struct
+{
+	ubxAutomaticFlags_tst automaticFlags;
+  UBX_ESF_INS_data_t data;
+  UBX_ESF_INS_moduleQueried_t moduleQueried;
+  void (*callbackPointer)(UBX_ESF_INS_data_t);
+  UBX_ESF_INS_data_t  *callbackData;
+} UBX_ESF_INS_t;
+
+// UBX-ESF-MEAS (0x10 0x02): External sensor fusion measurements
+// Note: length is variable
+#define UBX_ESF_MEAS_MAX_LEN = 8 + (4 * DEF_NUM_SENS) + 4;
+
+typedef struct
+{
+  union
+  {
+    uint32_t all;
+    struct
+    {
+      uint32_t dataField : 24; // Data
+      uint32_t dataType : 6; // Type of data (0 = no data; 1..63 = data type)
+    } bits;
+  } data;
+} UBX_ESF_MEAS_sensorData_t;
+
+typedef struct
+{
+  uint32_t timeTag; // Time tag of measurement generated by external sensor
+  union
+  {
+    uint16_t all;
+    struct
+    {
+      uint16_t timeMarkSent : 2; // Time mark signal was supplied just prior to sending this message:
+                                 //   0 = none, 1 = on Ext0, 2 = on Ext1
+      uint16_t timeMarkEdge : 1; // Trigger on rising (0) or falling (1) edge of time mark signal
+      uint16_t calibTtagValid : 1; // Calibration time tag available. Always set to zero.
+      uint16_t reserved : 7;
+      uint16_t numMeas : 5;  // Number of measurements contained in this message (optional, can be obtained from message size)
+    } bits;
+  } flags;
+  uint16_t id; // Identification number of data provider
+  UBX_ESF_MEAS_sensorData_t data[DEF_NUM_SENS];
+  uint32_t calibTtag; // OPTIONAL: Receiver local time calibrated: ms
+} UBX_ESF_MEAS_data_t;
+
+typedef struct
+{
+  union
+  {
+    uint32_t all;
+    struct
+    {
+      uint32_t all : 1;
+
+      uint32_t timeMarkSent : 1;
+      uint32_t timeMarkEdge : 1;
+      uint32_t calibTtagValid : 1;
+      uint32_t numMeas : 1;
+
+      uint32_t id : 1;
+
+      uint32_t data : DEF_NUM_SENS;
+
+      uint32_t calibTtag : 1;
+    } bits;
+  } moduleQueried;
+} UBX_ESF_MEAS_moduleQueried_t;
+
+typedef struct
+{
+	ubxAutomaticFlags_tst automaticFlags;
+  UBX_ESF_MEAS_data_t data;
+  UBX_ESF_MEAS_moduleQueried_t moduleQueried;
+  void (*callbackPointer)(UBX_ESF_MEAS_data_t);
+  UBX_ESF_MEAS_data_t  *callbackData;
+} UBX_ESF_MEAS_t;
+
 #ifdef __cplusplus
 }
 #endif

@@ -32,6 +32,8 @@ void printODOdata(UBX_NAV_ODO_data_t ubxDataStruct)
 
     my_printf("TOW: %lu (ms) Distance: %lu (m) Total Distance: %lu (m)",
     		iTOW, distance, totalDistance);
+    Fatfs_Printf("TOW: %lu (ms) Distance: %lu (m) Total Distance: %lu (m)",
+        		iTOW, distance, totalDistance);
 }
 
 void printPVTdata(UBX_NAV_PVT_data_t ubxDataStruct)
@@ -105,26 +107,23 @@ void Main_Init(void)
         if(Gnss_Init(&ubx_st, &serial_st) == true)
         {
             my_printf("init3 ok");
+            Fatfs_Printf("init3 ok");
             if(Gnss_SetUART1Output(&ubx_st, COM_TYPE_UBX, 1100) == true)
             {
                 my_printf("enable UBX");
+                Fatfs_Printf("enable UBX");
             }
             if(Gnss_SetNavigationFrequency(&ubx_st, 2, 1100) == true)
             {
                 my_printf("setNavigationFrequency ok");
+                Fatfs_Printf("setNavigationFrequency ok");
             }
             my_printf("sw version %02x.%02x",
                     Gnss_GetProtocolVersionHigh(&ubx_st, 1000),
                     Gnss_GetProtocolVersionLow(&ubx_st, 1000));
-
-            if(Gnss_GetEsfInfo(&ubx_st, 1000) == false)
-            {
-                my_printf("cannot get ESF");
-            }
-            else
-            {
-                my_printf("Fusion Mode: %d", ubx_st.packetUBXESFSTATUS_pst->data.fusionMode);
-            }
+            Fatfs_Printf("sw version %02x.%02x",
+                                Gnss_GetProtocolVersionHigh(&ubx_st, 1000),
+                                Gnss_GetProtocolVersionLow(&ubx_st, 1000));
 
             Gnss_SetAutoPVTcallback(&ubx_st, &printPVTdata, 1000);
             Gnss_SetAutoNAVODOcallback(&ubx_st, &printODOdata, 1000);

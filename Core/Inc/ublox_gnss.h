@@ -14,6 +14,7 @@ extern "C" {
 
 extern uint8_t g_incomming;
 
+extern UBX_ESF_STATUS_t *packetUBXESFSTATUS;
 /*******************************************************************************
  * UBX Class IDs.
  ******************************************************************************/
@@ -51,7 +52,7 @@ extern uint8_t g_incomming;
 #define UBX_CFG_RATE    0x08      /*Navigation/Measurement Rate Settings. Used to set port baud rates.*/
 #define UBX_CFG_PRT     0x00     //Used to configure port specifics. Polls the configuration for one I/O Port, or Port configuration for UART ports, or Port configuration for USB port, or Port configuration for SPI port, or Port configuration for DDC port
 #define UBX_CFG_CFG     0x09       //Clear, Save, and Load Configurations. Used to save current configuration
-
+#define UBX_CFG_HNR 	0x5C		//High Navigation Rate
 // Class: ACK
 #define UBX_ACK_NACK 0x00
 #define UBX_ACK_ACK 0x01
@@ -63,6 +64,8 @@ extern uint8_t g_incomming;
 #define UBX_ESF_MEAS 0x02
 #define UBX_ESF_RAW 0x03
 #define UBX_ESF_STATUS 0x10
+#define UBX_ESF_ALG 0x14
+#define UBX_ESF_INS 0x15 //36 bytes
 
 // Class: NMEA
 #define UBX_NMEA_GLL 0x01  //GxGLL (latitude and long, whith time of position fix and status)
@@ -176,7 +179,6 @@ typedef struct
 
 typedef struct Ublox_Gnss
 {
-    UBX_ESF_STATUS_t *packetUBXESFSTATUS_pst;
     // Flag to prevent reentry into checkCallbacks
     // Prevent badness if the user accidentally calls checkCallbacks from inside a callback
     volatile bool checkCallbacksReentrant_b;
@@ -268,9 +270,34 @@ uint32_t Gnss_GetSpeedAccEst(struct Ublox_Gnss *gnss_pst,uint16_t maxWait_u16);
 // The initPacket functions need to be private as they don't check if memory has already been allocated.
 // Functions like setAutoNAVPOSECEF will check that memory has not been allocated before calling initPacket.
 bool Gnss_InitPacketUBXNAVPVT(struct Ublox_Gnss *gnss_pst);
-bool Gnss_InitPacketUBXESFSTATUS(struct Ublox_Gnss *gnss_pst); // Allocate RAM for packetUBXESFSTATUS and initialize it
 bool Gnss_InitModuleSWVersion(); // Allocate RAM for moduleSWVersion and initialize it
 bool Gnss_InitPacketUBXNAVODO(struct Ublox_Gnss *gnss_pst);
+bool Gnss_InitPacketUBXESFALG(struct Ublox_Gnss *gnss_pst);
+bool Gnss_InitPacketUBXESFINS(struct Ublox_Gnss *gnss_pst);
+bool Gnss_InitPacketUBXESFMEAS(struct Ublox_Gnss *gnss_pst);
+bool Gnss_InitPacketUBXESFSTATUS(struct Ublox_Gnss *gnss_pst);
+
+bool Gnss_SetHNRNavigationRate(struct Ublox_Gnss *gnss_pst, uint8_t rate, uint16_t maxWait);
+
+bool Gnss_SetAutoESFALG(struct Ublox_Gnss *gnss_pst,bool enabled, uint16_t maxWait); //Enable/disable automatic ESF ALG reports
+bool Gnss_SetAutoESFALGImplicit(struct Ublox_Gnss *gnss_pst,bool enabled, bool implicitUpdate, uint16_t maxWait); //Enable/disable automatic ESF ALG reports, with implicitUpdate == false accessing stale data will not issue parsing of data in the rxbuffer of your interface, instead you have to call checkUblox when you want to perform an update
+bool Gnss_SetAutoESFALGcallback(struct Ublox_Gnss *gnss_pst,void (*callbackPointer)(UBX_ESF_ALG_data_t), uint16_t maxWait); //Enable automatic ALG reports at the navigation frequency. Data is accessed from the callback.
+bool Gnss_SetAutoESFALGrate(struct Ublox_Gnss *gnss_pst,uint8_t rate, bool implicitUpdate, uint16_t maxWait);
+
+bool Gnss_SetAutoESFINS(struct Ublox_Gnss *gnss_pst,bool enabled, uint16_t maxWait); //Enable/disable automatic ESF INS reports
+bool Gnss_SetAutoESFINSImplicit(struct Ublox_Gnss *gnss_pst,bool enabled, bool implicitUpdate, uint16_t maxWait); //Enable/disable automatic ESF INS reports, with implicitUpdate == false accessing stale data will not issue parsing of data in the rxbuffer of your interface, instead you have to call checkUblox when you want to perform an update
+bool Gnss_SetAutoESFINSrate(struct Ublox_Gnss *gnss_pst,uint8_t rate, bool implicitUpdate, uint16_t maxWait); //Set the rate for automatic INS reports
+bool Gnss_SetAutoESFINScallback(struct Ublox_Gnss *gnss_pst,void (*callbackPointer)(UBX_ESF_INS_data_t), uint16_t maxWait);
+
+bool Gnss_SetAutoESFMEAS(struct Ublox_Gnss *gnss_pst,bool enabled, uint16_t maxWait); //Enable/disable automatic ESF MEAS reports
+bool Gnss_SetAutoESFMEASImplicit(struct Ublox_Gnss *gnss_pst,bool enabled, bool implicitUpdate, uint16_t maxWait); //Enable/disable automatic ESF MEAS reports, with implicitUpdate == false accessing stale data will not issue parsing of data in the rxbuffer of your interface, instead you have to call checkUblox when you want to perform an update
+bool Gnss_SetAutoESFMEASrate(struct Ublox_Gnss *gnss_pst,uint8_t rate, bool implicitUpdate, uint16_t maxWait); //Set the rate for automatic MEAS reports
+bool Gnss_SetAutoESFMEAScallback(struct Ublox_Gnss *gnss_pst,void (*callbackPointer)(UBX_ESF_MEAS_data_t), uint16_t maxWait); //Enable automatic MEAS reports at the navigation frequency. Data is accessed from the callback.
+
+bool Gnss_SetAutoESFSTATUS(struct Ublox_Gnss *gnss_pst,bool enabled, uint16_t maxWait ); //Enable/disable automatic ESF STATUS reports
+bool Gnss_SetAutoESFSTATUSImplicit(struct Ublox_Gnss *gnss_pst,bool enabled, bool implicitUpdate, uint16_t maxWait ); //Enable/disable automatic ESF STATUS reports, with implicitUpdate == false accessing stale data will not issue parsing of data in the rxbuffer of your interface, instead you have to call checkUblox when you want to perform an update
+bool Gnss_SetAutoESFSTATUSrate(struct Ublox_Gnss *gnss_pst,uint8_t rate, bool implicitUpdate , uint16_t maxWait ); //Set the rate for automatic STATUS reports
+bool Gnss_SetAutoESFSTATUScallback(struct Ublox_Gnss *gnss_pst,void (*callbackPointer)(UBX_ESF_STATUS_data_t), uint16_t maxWait );
 
 bool Gnss_GetEsfInfo(struct Ublox_Gnss *gnss_pst, uint16_t maxWait_u16); // ESF STATUS Helper
 bool Gnss_GetESFSTATUS(struct Ublox_Gnss *gnss_pst, uint16_t maxWait_u16); // ESF STATUS

@@ -88,26 +88,8 @@ static void MX_TIM6_Init(void);
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
@@ -121,30 +103,55 @@ int main(void)
   MX_SPI3_Init();
   MX_FATFS_Init();
   MX_TIM6_Init();
-  /* USER CODE BEGIN 2 */
+
   Main_Init();
-  /* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-
+  static bool isCalib_b = false;
   uint32_t startTime = timer_getCurrentTimeStampMs();
   while (timer_getTimeElapsed(startTime) < 50000)
   {
-    /* USER CODE END WHILE */
-//      long latitude = Gnss_GetLatitude(&ubx_st, 1000);
-//      long longitude = Gnss_GetLongitude(&ubx_st, 1000);
-//      long altitude = Gnss_GetAltitude(&ubx_st, 1000);
       Gnss_CheckUblox(&ubx_st, 0, 0);
       Gnss_CheckCallbacks(&ubx_st);
+
+      if(false == isCalib_b)
+      {
+    	  if(Gnss_GetEsfInfo(&ubx_st, 1000) == false)
+    	  {
+    		  my_printf("cannot get ESF");
+    		  Fatfs_Printf("cannot get ESF");
+    	  }
+		  else
+		  {
+			  if (packetUBXESFSTATUS->data.fusionMode == 0)
+			  {
+				  my_printf("  Sensor is initializing...");
+				  Fatfs_Printf("  Sensor is initializing...");
+			  }
+			  else if (packetUBXESFSTATUS->data.fusionMode == 1)
+			  {
+				  isCalib_b = true;
+				  my_printf("  Sensor is calibrated!");
+				  Fatfs_Printf("  Sensor is calibrated!");
+			  }
+			  else if (packetUBXESFSTATUS->data.fusionMode == 2)
+			  {
+				  my_printf("  Sensor fusion is suspended!");
+				  Fatfs_Printf("  Sensor fusion is suspended!");
+			  }
+			  else if (packetUBXESFSTATUS->data.fusionMode == 3)
+			  {
+				  my_printf("  Sensor fusion is disabled!");
+				  Fatfs_Printf("  Sensor fusion is disabled!");
+			  }
+		  }
+      }
       DWT_Delay(1000);
-    /* USER CODE BEGIN 3 */
   }
+
   HAL_GPIO_WritePin(LED_G1_GPIO_Port, LED_G1_Pin, RESET);
   Fatfs_Close();
   my_printf("exit");
   DWT_Delay(1000);
-  /* USER CODE END 3 */
 }
 
 /**
