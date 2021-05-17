@@ -108,7 +108,8 @@ int main(void)
 
   static bool isCalib_b = false;
   uint32_t startTime = timer_getCurrentTimeStampMs();
-  while (timer_getTimeElapsed(startTime) < 50000)
+  //1800000
+  while (timer_getTimeElapsed(startTime) < 50000)/*30min*/
   {
       Gnss_CheckUblox(&ubx_st, 0, 0);
       Gnss_CheckCallbacks(&ubx_st);
@@ -117,8 +118,8 @@ int main(void)
       {
     	  if(Gnss_GetEsfInfo(&ubx_st, 1000) == false)
     	  {
-    		  my_printf("cannot get ESF");
-    		  Fatfs_Printf("cannot get ESF");
+//    		  my_printf("cannot get ESF");
+//    		  Fatfs_Printf("cannot get ESF");
     	  }
 		  else
 		  {
@@ -145,7 +146,7 @@ int main(void)
 			  }
 		  }
       }
-      DWT_Delay(1000);
+      DWT_Delay(25);
   }
 
   HAL_GPIO_WritePin(LED_G1_GPIO_Port, LED_G1_Pin, RESET);
