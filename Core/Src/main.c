@@ -109,7 +109,7 @@ int main(void)
   static bool isCalib_b = false;
   uint32_t startTime = timer_getCurrentTimeStampMs();
   //1800000
-  while (timer_getTimeElapsed(startTime) < 50000)/*30min*/
+  while (timer_getTimeElapsed(startTime) < 300000)/*5min*/
   {
       Gnss_CheckUblox(&ubx_st, 0, 0);
       Gnss_CheckCallbacks(&ubx_st);

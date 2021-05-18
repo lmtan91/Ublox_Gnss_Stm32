@@ -6,6 +6,7 @@
 FIL g_fil_st;
 FRESULT g_fres_st;
 FATFS FatFs;
+FILINFO fno;
 
 bool g_isOpen_b = false;
 void Fatfs_Init(void)
@@ -38,16 +39,39 @@ void Fatfs_Init(void)
 
 void Fatfs_Open(void)
 {
-    g_fres_st = f_open(&g_fil_st, "write.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
-    if(g_fres_st == FR_OK)
-    {
-        g_isOpen_b = true;
-        my_printf("I was able to open 'write.txt' for writing\r\n");
-    }
-    else
-    {
-      my_printf("f_open error (%i)\r\n", g_fres_st);
-    }
+	int index = 0;
+	char fileName[25];
+
+	for(index = 0; index < 255; index++)
+	{
+		memset(fileName, 0, 25);
+		sprintf(fileName, "speedtool%d", index);
+		my_printf("file %s", fileName);
+		g_fres_st = f_stat(fileName, &fno);
+		switch (g_fres_st)
+		{
+		case FR_OK:
+			my_printf("Size: %lu\n", fno.fsize);
+			break;
+		case FR_NO_FILE:
+			my_printf("It is not exist.\n");
+			goto opennewfile;
+
+		default:
+			my_printf("An error occured. (%d)\n", g_fres_st);
+		}
+	}
+opennewfile:
+	g_fres_st = f_open(&g_fil_st, fileName, FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
+	if(g_fres_st == FR_OK)
+	{
+		g_isOpen_b = true;
+		my_printf("I was able to open 'write.txt' for writing\r\n");
+	}
+	else
+	{
+	  my_printf("f_open error (%i)\r\n", g_fres_st);
+	}
 }
 
 void Fatfs_Close(void)
