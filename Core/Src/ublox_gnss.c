@@ -1215,6 +1215,7 @@ void Gnss_SetSerialRate(struct Ublox_Gnss *gnss_pst, uint32_t baudrate_u32, uint
     }
 }
 
+
 bool Gnss_CheckAutomatic(struct Ublox_Gnss *gnss_pst, uint8_t Class_u8, uint8_t ID_u8)
 {
     bool result = false;
@@ -1227,7 +1228,11 @@ bool Gnss_CheckAutomatic(struct Ublox_Gnss *gnss_pst, uint8_t Class_u8, uint8_t 
         case UBX_NAV_PVT:
             if (packetUBXNAVPVT_pst != NULL) result = true;
             break;
+        case UBX_NAV_ODO:
+        	if (packetUBXNAVODO_pst != NULL) result = true;
+        	break;
         }
+        /* TODO: */
     }
     break;
     case UBX_CLASS_CFG:
@@ -1365,13 +1370,39 @@ void Gnss_ProcessUBXpacket(struct Ublox_Gnss *gnss_pst, Ubx_Packet_tst *msg_st)
             //Check if we need to copy the data into the file buffer
             if (packetUBXNAVPVT_pst->automaticFlags.flags.bits.addToFileBuffer)
             {
+            	/* TODO: */
 //              storePacket(msg_st);
             }
           }
         }
         else if (msg_st->id_u8 == UBX_NAV_ODO && msg_st->len_u16 == UBX_NAV_ODO_LEN)
         {
+        	if (packetUBXNAVODO_pst != NULL)
+			{
+        		packetUBXNAVODO_pst->data.version = extractByte(msg_st, 0);
+        		packetUBXNAVODO_pst->data.iTOW = extractLong(msg_st, 4);
+        		packetUBXNAVODO_pst->data.distance = extractLong(msg_st, 8);
+        		packetUBXNAVODO_pst->data.totalDistance = extractLong(msg_st, 12);
+        		packetUBXNAVODO_pst->data.distanceStd = extractLong(msg_st, 16);
 
+        		//Mark all datums as fresh (not read before)
+        		packetUBXNAVODO_pst->moduleQueried.moduleQueried.all = 0xFFFFFFFF;
+
+        		//Check if we need to copy the data for the callback
+        		if ((packetUBXNAVODO_pst->callbackData != NULL) // If RAM has been allocated for the copy of the data
+        				&& (packetUBXNAVODO_pst->automaticFlags.flags.bits.callbackCopyValid == false)) // AND the data is stale
+        		{
+        			memcpy(&packetUBXNAVODO_pst->callbackData->version, &packetUBXNAVODO_pst->data.version, sizeof(UBX_NAV_ODO_data_t));
+        			packetUBXNAVODO_pst->automaticFlags.flags.bits.callbackCopyValid = true;
+        		}
+
+        		//Check if we need to copy the data into the file buffer
+        		if (packetUBXNAVODO_pst->automaticFlags.flags.bits.addToFileBuffer)
+        		{
+        			/* TODO: */
+//        			storePacket(msg);
+        		}
+			}
         }
         else if (msg_st->id_u8 == UBX_NAV_VELECEF && msg_st->len_u16 == UBX_NAV_VELECEF_LEN)
         {

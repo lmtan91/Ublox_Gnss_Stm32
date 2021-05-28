@@ -93,6 +93,7 @@ void vprint(const char *fmt, va_list argp)
     }
 }
 
+#ifdef ENABLE_PRINTF
 void my_printf(const char *fmt, ...)
 {
     va_list argp;
@@ -100,3 +101,9 @@ void my_printf(const char *fmt, ...)
     vprint(fmt, argp);
     va_end(argp);
 }
+#else
+void my_printf(const char *fmt, ...)
+{
+
+}
+#endif

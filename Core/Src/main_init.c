@@ -136,7 +136,7 @@ void Main_Init(void)
 				my_printf("enable UBX");
 				Fatfs_Printf("enable UBX");
 			}
-            if(Gnss_SetNavigationFrequency(&ubx_st, 1, 1100) == true)
+            if(Gnss_SetNavigationFrequency(&ubx_st, 5, 1100) == true)
 			{
 				my_printf("setNavigationFrequency ok");
 				Fatfs_Printf("setNavigationFrequency ok");
@@ -168,7 +168,7 @@ void Main_Init(void)
                 my_printf("enable UBX");
                 Fatfs_Printf("enable UBX");
             }
-            if(Gnss_SetNavigationFrequency(&ubx_st, 1, 1100) == true)
+            if(Gnss_SetNavigationFrequency(&ubx_st, 5, 1100) == true)
             {
                 my_printf("setNavigationFrequency ok");
                 Fatfs_Printf("setNavigationFrequency ok");
