@@ -466,6 +466,15 @@ void Gnss_CheckCallbacks(struct Ublox_Gnss *gnss_pst)
         packetUBXNAVPVT_pst->automaticFlags.flags.bits.callbackCopyValid = false; // Mark the data as stale
     }
 
+    if ((packetUBXNAVODO_pst != NULL) // If RAM has been allocated for message storage
+        && (packetUBXNAVODO_pst->callbackData != NULL) // If RAM has been allocated for the copy of the data
+        && (packetUBXNAVODO_pst->callbackPointer != NULL) // If the pointer to the callback has been defined
+        && (packetUBXNAVODO_pst->automaticFlags.flags.bits.callbackCopyValid == true)) // If the copy of the data is valid
+	{
+    	packetUBXNAVODO_pst->callbackPointer(*packetUBXNAVODO_pst->callbackData); // Call the callback
+    	packetUBXNAVODO_pst->automaticFlags.flags.bits.callbackCopyValid = false; // Mark the data as stale
+	}
+
     gnss_pst->checkCallbacksReentrant_b = false;
 }
 

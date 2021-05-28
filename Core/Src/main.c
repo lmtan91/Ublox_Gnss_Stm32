@@ -106,9 +106,15 @@ int main(void)
 
   Main_Init();
 
+  {
+	  HAL_GPIO_WritePin(LED_B1_GPIO_Port, LED_B1_Pin, RESET);
+	  DWT_Delay(3000000);
+	  HAL_GPIO_WritePin(LED_B1_GPIO_Port, LED_B1_Pin, SET);
+  }
+
   static bool isCalib_b = false;
   uint32_t startTime = timer_getCurrentTimeStampMs();
-  //1800000
+  //300000)/*5min*/
   while (timer_getTimeElapsed(startTime) < 300000)/*5min*/
   {
       Gnss_CheckUblox(&ubx_st, 0, 0);

@@ -130,10 +130,26 @@ void Main_Init(void)
         if(Gnss_Init(&ubx_st, &serial_st) == true)
         {
             my_printf("init2 ok");
-            if(Gnss_GetPortSettings(&ubx_st, COM_PORT_UART1, 1100) ==  true)
-            {
-                my_printf("get ok");
-            }
+            Fatfs_Printf("init2 ok");
+            if(Gnss_SetUART1Output(&ubx_st, COM_TYPE_UBX, 1100) == true)
+			{
+				my_printf("enable UBX");
+				Fatfs_Printf("enable UBX");
+			}
+            if(Gnss_SetNavigationFrequency(&ubx_st, 1, 1100) == true)
+			{
+				my_printf("setNavigationFrequency ok");
+				Fatfs_Printf("setNavigationFrequency ok");
+			}
+            my_printf("sw version %02x.%02x",
+                                Gnss_GetProtocolVersionHigh(&ubx_st, 1000),
+                                Gnss_GetProtocolVersionLow(&ubx_st, 1000));
+			Fatfs_Printf("sw version %02x.%02x",
+								Gnss_GetProtocolVersionHigh(&ubx_st, 1000),
+								Gnss_GetProtocolVersionLow(&ubx_st, 1000));
+
+			Gnss_SetAutoPVTcallback(&ubx_st, &printPVTdata, 1000);
+			Gnss_SetAutoNAVODOcallback(&ubx_st, &printODOdata, 1000);
         }
     }
     else
@@ -152,7 +168,7 @@ void Main_Init(void)
                 my_printf("enable UBX");
                 Fatfs_Printf("enable UBX");
             }
-            if(Gnss_SetNavigationFrequency(&ubx_st, 2, 1100) == true)
+            if(Gnss_SetNavigationFrequency(&ubx_st, 1, 1100) == true)
             {
                 my_printf("setNavigationFrequency ok");
                 Fatfs_Printf("setNavigationFrequency ok");
